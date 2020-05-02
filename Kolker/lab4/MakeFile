@@ -1,0 +1,7 @@
+all: all_comp
+
+all_comp: client.c clientV6.c server.c serverV6.c
+			gcc -o client client.c
+			gcc -o clientV6 clientV6.c
+			gcc -o server server.c
+			gcc -o serverV6 serverV6.c	

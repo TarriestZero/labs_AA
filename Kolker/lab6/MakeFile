@@ -1,0 +1,6 @@
+all: all_comp
+
+all_comp: servertrue.c client.c
+			gcc servertrue.c -o servertrue -lzmq -lz 
+			gcc client.c -o client -lzmq -lz 
+

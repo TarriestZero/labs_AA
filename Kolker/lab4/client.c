@@ -7,6 +7,7 @@
 #include <termios.h>
 #include <fcntl.h>
 #include <string.h>
+#include <arpa/inet.h>
 
 #define PORT     8080 
 #define MAXLINE 1024 
@@ -32,7 +33,7 @@ int main()
     // Filling server information 
     servaddr.sin_family = AF_INET; 
     servaddr.sin_port = htons(PORT); 
-    servaddr.sin_addr.s_addr = "127.0.0.1"; 
+    inet_aton("127.0.0.1" , &servaddr.sin_addr); 
 
     buf[0]=129;// ключик
     buf[1]=04; // день

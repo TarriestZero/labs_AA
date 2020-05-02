@@ -1,0 +1,12 @@
+all: all_comp
+
+all_comp: trueclient.c trueclientV6.c server.c serverV6.c liteclient.c liteclientV6.c clientFtp.c clientFtpV6.c
+			gcc -o trueclient trueclient.c
+			gcc -o trueclientV6 trueclientV6.c
+			gcc -o server server.c
+			gcc -o serverV6 serverV6.c
+			gcc -o liteclient liteclient.c
+			gcc -o liteclientV6 liteclientV6.c
+			gcc -o clientFtp clientFtp.c
+			gcc -o clientFtpV6 clientFtpV6.c
+
