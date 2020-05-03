@@ -115,7 +115,7 @@ void init_UDP(void) // Инициализируем систему рассыл�
     int rc;
     int aparam=1;
     struct sockaddr_in addr; // структура с типом адресов
-    udp_socket = socket(AF_INET, SOCK_DGRAM, 17); // инициализировали сокет
+    udp_socket = socket(AF_INET, SOCK_DGRAM, 0); // инициализировали сокет
     if(udp_socket < 0)
     {
         perror("socket");
