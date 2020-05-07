@@ -23,18 +23,38 @@ struct sockaddr_in adr; // Адрес для бродкаста в рамках 
 int main ()
 {
     printf("Start client.... \n");
-    char buf[MAXLINE];
+    char buf[1000];
     init_UDP();
-    sound_set_eth();
+    //sound_set_eth();
     int len = sizeof(buf);
+    int format,nchans,rate;
+    //short buf[1000];
+    int res,res2,audio_fd;
+    printf("SETTINGS\n\r"); 
+    audio_fd = open(AUDIO_DEVICE, O_RDWR, 0);
+    if(audio_fd<0) { printf("no dsp\n\r") ;exit(0); }
+    format = AFMT_S8;
+    ioctl(audio_fd, SNDCTL_DSP_SETFMT, &format);
+    nchans = 1;
+    ioctl(audio_fd, SNDCTL_DSP_CHANNELS, &nchans);
+    rate = 8000;
+    ioctl(audio_fd, SNDCTL_DSP_SPEED, &rate);
+    printf("Recording mode: 1000 samples\n\r");
+    res=read(audio_fd,&buf[7],sizeof(buf) - 7);
+    printf("Playing %d samples\n\r",res); 
+
     for(;;)
     {
         int bytes_read = recvfrom(udp_socket, (char *)buf, MAXLINE,  
                             0, (struct sockaddr *) &adr, 
                             &len); 
+        //printf("%hn\n", &buf[0]);
         if ((buf[0] == 82) && (buf[1] == 48)){ 
-            printf("recv %d bytes: \n",bytes_read);
-            printf("%s\n", &buf[0]);
+            //printf("recv %d bytes: \n",bytes_read);
+            //printf("%s\n", &buf[0]);
+
+            res2=write(audio_fd,&buf[7],res);    
+            
         }
     }
     close(udp_socket);
