@@ -5,6 +5,7 @@
 #include <fcntl.h> 
 #include <netinet/in.h>
 #include <sys/soundcard.h> 
+#include<arpa/inet.h> 
 #include <stdio.h> 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -70,8 +71,9 @@ void init_UDP(void) // Инициализируем систему рассыл�
         exit(1);
     }
     adr.sin_family = AF_INET;
+    adr.sin_addr.s_addr = INADDR_ANY;
     adr.sin_port = htons(3301); // принимаем на этот порт
-    adr.sin_addr.s_addr = htonl(INADDR_ANY);
+    //inet_aton("127.0.0.1" , &adr.sin_addr);
     // привязали сокет
     if(bind(udp_socket, (struct sockaddr *)&adr, sizeof(adr)) < 0)
     {

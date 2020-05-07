@@ -139,7 +139,7 @@ void init_UDP(void) // Инициализируем систему рассыл�
 
     addr_UDP_BR.sin_family = AF_INET;
     addr_UDP_BR.sin_port = htons(3301);
-    addr_UDP_BR.sin_addr.s_addr = INADDR_BROADCAST;
+    addr_UDP_BR.sin_addr.s_addr = htonl(INADDR_ANY);
 }
 
 void init_ZMQ(void) // Инициализируем систему рассылки ZMQ
