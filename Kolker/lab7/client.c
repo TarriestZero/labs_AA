@@ -29,10 +29,13 @@ int main ()
     int len = sizeof(buf);
     for(;;)
     {
-    int bytes_read = recvfrom(udp_socket, (char *)buf, MAXLINE,  
-                          0, (struct sockaddr *) &adr, 
-                          &len); 
-    printf("recv %d bytes: \n",bytes_read);
+        int bytes_read = recvfrom(udp_socket, (char *)buf, MAXLINE,  
+                            0, (struct sockaddr *) &adr, 
+                            &len); 
+        if ((buf[0] == 82) && (buf[1] == 48)){ 
+            printf("recv %d bytes: \n",bytes_read);
+            printf("%s\n", &buf[0]);
+        }
     }
     close(udp_socket);
     return(0);
