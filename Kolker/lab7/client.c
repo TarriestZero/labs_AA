@@ -40,8 +40,6 @@ int main ()
     rate = 8000;
     ioctl(audio_fd, SNDCTL_DSP_SPEED, &rate);
     printf("Recording mode: 1000 samples\n\r");
-    res=read(audio_fd,&buf[7],sizeof(buf) - 7);
-    printf("Playing %d samples\n\r",res); 
 
     for(;;)
     {
@@ -50,10 +48,8 @@ int main ()
                             &len); 
         //printf("%hn\n", &buf[0]);
         if ((buf[0] == 82) && (buf[1] == 48)){ 
-            //printf("recv %d bytes: \n",bytes_read);
-            //printf("%s\n", &buf[0]);
 
-            res2=write(audio_fd,&buf[7],res);    
+            res2=write(audio_fd,&buf[7],bytes_read - 7);    
             
         }
     }
