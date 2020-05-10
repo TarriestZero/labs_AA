@@ -21,7 +21,6 @@
 struct sockaddr_in addr_UDP; //Структура для хранения адреса
 
 void init_UDP(void);// инициализация UDP сокет
-void send_UDP(int); // Отправляем данные в UDP
 
 
 void main()
