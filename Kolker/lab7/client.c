@@ -11,9 +11,7 @@
 #include <sys/socket.h>
 
 #define AUDIO_DEVICE "/dev/dsp"
-#define MAXLINE 1024 
 
-void sound_set_eth(void);
 void init_UDP(void);
 
 int udp_socket; // Сокет UDP
