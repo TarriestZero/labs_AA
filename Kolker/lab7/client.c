@@ -9,9 +9,16 @@
 #include <stdio.h> 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <pthread.h>
 
 #define AUDIO_DEVICE "/dev/dsp"
 #define pakage 6
+#define frame 167
+
+#define ERROR_CREATE_THREAD -11
+#define ERROR_JOIN_THREAD   -12
+#define SUCCESS        0
+
 
 void init_UDP(void);
 
@@ -19,17 +26,17 @@ int udp_socket; // Сокет UDP
 struct sockaddr_in adr; // Адрес для бродкаста в рамках текущего сеанса
 
 
-int main ()
-{
-    printf("Start client.... \n");
-    short int Size_for = 1 + (167 * pakage);
-    unsigned char buf[1200];
-    char * buffer = (char*) malloc(sizeof(int) * 500); // выделить память для хранения содержимого файла
-    init_UDP();
-    int len = sizeof(buf);
+typedef struct someArgs_tag {
+    int audio_fd;
+    unsigned char *per_buf;
+    int n;
+} someArgs_t;
+
+
+int set_audio_dev(){
+
+    int audio_fd;
     int format,nchans,rate;
-    int bytes_read;
-    int res,res2,audio_fd;
     printf("SETTINGS\n\r"); 
     audio_fd = open(AUDIO_DEVICE, O_WRONLY);
     if(audio_fd<0) { printf("no dsp\n\r") ;exit(0); }
@@ -41,27 +48,118 @@ int main ()
     ioctl(audio_fd, SNDCTL_DSP_SPEED, &rate);
     ioctl(audio_fd, SOUND_PCM_READ_RATE, &rate);
     printf("Recording mode: 1000 samples\n\r");
+    return audio_fd;
+}
+
+void* write_to_audio(void *args)
+{
+someArgs_t *arg = (someArgs_t*) args;
+int audio_fd = arg->audio_fd;
+int n = arg->n;
+write(audio_fd,arg->per_buf,n - ((pakage + 1) * 4)); //пушаем в звуковуху с 7 элемента (сами данные) 
+pthread_exit(0);
+}
+
+
+int main ()
+{
+    printf("Start client.... \n");
+
+
+    pthread_t thread;
+    int status;
+    int status_addr;
+    someArgs_t args;
+
+    short int Size_for = 1 + (frame * pakage);
+    unsigned char buf[1200];
+    unsigned char temp_buf[frame];
+    //char * buffer = (char*) malloc(sizeof(char) * 500); // выделить память для хранения содержимого файла
+    unsigned char buffer[frame + 3];
+    init_UDP();
+    int len = sizeof(buf);
+    int len_bufrecv = sizeof(buffer);
+    int bytes_read;
+    args.audio_fd = set_audio_dev();
+
 
     for(;;)
     {
         memset(buffer, 0, sizeof(buffer)); 
+        memset(buf, 0, sizeof(len)); 
         int n = 0;
         for(int co = 0; co < Size_for;){
-        bytes_read = recvfrom(udp_socket, buffer, sizeof(buf),  
-                            0, (struct sockaddr *) &adr, 
-                            &len); 
-        if ((buffer[0] == 82) && (buffer[1] == 48)){
-        co = co + bytes_read;
-        for (int co1 = 3;(co - (3 * (co / 167)) > n); n++, co1++){
-        buf[n]= buffer[co1];  // в buf складируется примерно 6 частей 
-        }
-        //n++;
-        }
+            bytes_read = recvfrom(udp_socket, buffer, sizeof(buf),  
+                                0, (struct sockaddr *) &adr, 
+                                &len_bufrecv); 
+            if ((buffer[0] == 82) && (buffer[1] == 48)){
+                co = co + bytes_read;
+                for (int co1 = 3;(co - (3 * (co / frame)) > n); n++, co1++){
+                    buf[n]= buffer[co1];  // в buf складируется примерно 7 частей 
+                }
+            }
         }
 
-        if ((buffer[0] == 82) && (buffer[1] == 48)){  //роверка на тип
-            res2=write(audio_fd,&buffer[7],bytes_read - 7); //пушаем в звуковуху с 7 элемента (сами данные)             
+        for (size_t i = 0; i < pakage - 1; i++) //пузырьком сравниваем метки времени
+        {
+            for (size_t j = (pakage - 1) * (frame - 3); j > i;)
+            {
+                if (buf[j - (frame - 3)] > buf[j]){ // если текущий элемент меньше предыдущего
+
+                    for (size_t k = 0; k < (frame - 3); k++) // запомнили текущий
+                    {
+                        temp_buf[k] = buf[j + k];
+                    }
+                    
+                    //int temp = num[j - 1]; // меняем их местами
+
+                    for (size_t k = 0; k < (frame - 3); k++)
+                    {
+                        buf[j - (frame - 3) + k] = buf[j + k];
+                    }
+                    
+
+                    //num[j - 1] = num[j];
+
+                    for(size_t k = 0; k < (frame - 3); k++)
+                    {
+                        buf[j + k] = temp_buf[k];
+                    }
+
+                    //num[j] = temp;
+                }
+                j = j - (frame - 3);
+                
+            }
+        
+           
         }
+        for (int col = 0;col < pakage + 1;col++){
+
+            for (size_t k = 0; k < (frame - 7); k++) // запомнили текущий
+            {
+                temp_buf[k] = buf[((col * (frame - 3)) + k + 4)];
+            }
+            for (int j = 0;(frame - 7) > j; j++){
+                buf[j + (col * (frame - 7))] = temp_buf[j];  // в buf складируется примерно 6 частей 
+            }
+        }
+        args.n = n;
+        args.per_buf = &buf[0];
+        status = pthread_create(&thread, NULL, write_to_audio, (void*) &args);
+        if (status != 0) {
+        printf("main error: can't create thread, status = %d\n", status);
+        exit(ERROR_CREATE_THREAD);
+        }
+
+        
+        status = pthread_join(thread, (void**)&status_addr);
+        if (status != SUCCESS) {
+        printf("main error: can't join thread, status = %d\n", status);
+        exit(ERROR_JOIN_THREAD);
+        }
+        //write(audio_fd,buf,n - ((pakage + 1) * 4)); //пушаем в звуковуху с 7 элемента (сами данные) 
+        
     }
     close(udp_socket);
     return(0);

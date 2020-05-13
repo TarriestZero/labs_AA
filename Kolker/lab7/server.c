@@ -78,7 +78,7 @@ int main(int argc, char **argv)
           Send_UDP((char *)Zin,&Frame_ctr,Zlen,1);// Отправили фрейм тип ZA8 в UDP
           Send_ZMQ((char *)Zin,&Frame_ctr,Zlen,1);// Отправили фрейм тип Z08 в ZMQ
           Frame_ctr++;
-          usleep(19000); // пауза
+          usleep(18000); // пауза
           }
    
        while (1)
