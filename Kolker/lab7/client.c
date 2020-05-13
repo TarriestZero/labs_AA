@@ -98,7 +98,7 @@ int main ()
                 }
             }
         }
-
+        //-------------------------jitter buf correct begin------------------------------------
         for (size_t i = 0; i < pakage - 1; i++) //пузырьком сравниваем метки времени
         {
             for (size_t j = (pakage - 1) * (frame - 3); j > i;)
@@ -129,6 +129,7 @@ int main ()
         
            
         }
+        //-------------------------jitter buf correct end------------------------------------
         for (int col = 0;col < pakage + 1;col++){
 
             for (size_t k = 0; k < (frame - 7); k++) // запомнили текущий
