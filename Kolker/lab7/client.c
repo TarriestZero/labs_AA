@@ -84,8 +84,8 @@ int main ()
 
     for(;;)
     {
-        memset(buffer, 0, sizeof(buffer)); 
-        memset(buf, 0, sizeof(len)); 
+        memset(&buffer, 0, sizeof(buffer)); 
+        memset(&buf, 0, sizeof(len)); 
         int n = 0;
         for(int co = 0; co < Size_for;){
             bytes_read = recvfrom(udp_socket, buffer, sizeof(buf),  
