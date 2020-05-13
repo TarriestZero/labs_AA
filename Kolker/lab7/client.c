@@ -74,7 +74,6 @@ int main ()
     short int Size_for = 1 + (frame * pakage);
     unsigned char buf[1200];
     unsigned char temp_buf[frame];
-    //char * buffer = (char*) malloc(sizeof(char) * 500); // выделить память для хранения содержимого файла
     unsigned char buffer[frame + 3];
     init_UDP();
     int len = sizeof(buf);
@@ -111,7 +110,6 @@ int main ()
                         temp_buf[k] = buf[j + k];
                     }
                     
-                    //int temp = num[j - 1]; // меняем их местами
 
                     for (size_t k = 0; k < (frame - 3); k++)
                     {
@@ -119,14 +117,11 @@ int main ()
                     }
                     
 
-                    //num[j - 1] = num[j];
-
                     for(size_t k = 0; k < (frame - 3); k++)
                     {
                         buf[j + k] = temp_buf[k];
                     }
 
-                    //num[j] = temp;
                 }
                 j = j - (frame - 3);
                 
@@ -158,7 +153,6 @@ int main ()
         printf("main error: can't join thread, status = %d\n", status);
         exit(ERROR_JOIN_THREAD);
         }
-        //write(audio_fd,buf,n - ((pakage + 1) * 4)); //пушаем в звуковуху с 7 элемента (сами данные) 
         
     }
     close(udp_socket);
