@@ -11,6 +11,7 @@
 #include <sys/socket.h>
 
 #define AUDIO_DEVICE "/dev/dsp"
+#define pakage 6
 
 void init_UDP(void);
 
@@ -21,10 +22,13 @@ struct sockaddr_in adr; // Адрес для бродкаста в рамках 
 int main ()
 {
     printf("Start client.... \n");
-    char buf[500];
+    short int Size_for = 1 + (167 * pakage);
+    unsigned char buf[1200];
+    char * buffer = (char*) malloc(sizeof(int) * 500); // выделить память для хранения содержимого файла
     init_UDP();
     int len = sizeof(buf);
     int format,nchans,rate;
+    int bytes_read;
     int res,res2,audio_fd;
     printf("SETTINGS\n\r"); 
     audio_fd = open(AUDIO_DEVICE, O_WRONLY);
@@ -40,13 +44,23 @@ int main ()
 
     for(;;)
     {
-        memset(&buf, 0, sizeof(buf)); 
-        int bytes_read = recvfrom(udp_socket, (char *)buf, sizeof(buf),  
+        memset(buffer, 0, sizeof(buffer)); 
+        int n = 0;
+        for(int co = 0; co < Size_for;){
+        bytes_read = recvfrom(udp_socket, buffer, sizeof(buf),  
                             0, (struct sockaddr *) &adr, 
                             &len); 
+        if ((buffer[0] == 82) && (buffer[1] == 48)){
+        co = co + bytes_read;
+        for (int co1 = 3;(co - (3 * (co / 167)) > n); n++, co1++){
+        buf[n]= buffer[co1];  // в buf складируется примерно 6 частей 
+        }
+        //n++;
+        }
+        }
 
-        if ((buf[0] == 82) && (buf[1] == 48)){  //роверка на тип
-            res2=write(audio_fd,&buf[7],bytes_read - 7); //пушаем в звуковуху с 7 элемента (сами данные)             
+        if ((buffer[0] == 82) && (buffer[1] == 48)){  //роверка на тип
+            res2=write(audio_fd,&buffer[7],bytes_read - 7); //пушаем в звуковуху с 7 элемента (сами данные)             
         }
     }
     close(udp_socket);
